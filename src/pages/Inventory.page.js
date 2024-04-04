@@ -12,4 +12,13 @@ export class InventoryPage extends BaseSwagLabPage {
     async addItemToCartById(id) {
         await this.addItemToCartBtns.nth(id).click();
     }
+
+
+    get productSortContainer() { return this.page.locator('.product_sort_container'); }
+
+    get inventoryItemName() { return this.page.locator('.inventory_item_name'); }
+    get itemPrice() { return this.page.locator('.inventory_item_price'); }
+    
+    
+
 }
