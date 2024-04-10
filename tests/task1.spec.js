@@ -1,5 +1,7 @@
-const { expect } = require('playwright/test')
-const { test } = require('../src/fixture.js')
+const { expect } = require('playwright/test');
+const { test } = require('../src/fixture.js');
+const { sortInventoryItemNames } = require('../src/Helper.js');
+const { extractTextContent } = require('../src/Helper.js');
 
 
 test.describe('Test Suite1', () => {
@@ -16,9 +18,7 @@ test.afterEach(async ({page}) =>{
 test('ID=1; Verify sorting DESC ', async ({ page }) => {
   await page.locator('select.product_sort_container').selectOption('Name (Z to A)');
 
-const inventoryItemNames = await page.$$eval('.inventory_item_name', elements =>
-    elements.map(element => element.textContent.trim())
-  );
+const inventoryItemNames = await extractTextContent(page, '.inventory_item_name', 'element => element.textContent.trim()');
 
 const sortedInventoryItemNames = inventoryItemNames.slice().sort((a, b) => {
     if (a < b) return 1;
@@ -26,56 +26,38 @@ const sortedInventoryItemNames = inventoryItemNames.slice().sort((a, b) => {
     return 0;
 });
   
-const isSortedDesc = JSON.stringify(sortedInventoryItemNames) === JSON.stringify(inventoryItemNames.slice().sort().reverse());
-expect(isSortedDesc).toEqual(true)
-expect(isSortedDesc).toBeTruthy()
+expect(sortedInventoryItemNames).toEqual(inventoryItemNames.sort().reverse())
 });
 
 test('ID=2; Verify sorting ASC ', async ({ page }) => {
   await page.locator('select.product_sort_container').selectOption('Name (A to Z)');
 
-const inventoryItemNames = await page.$$eval('.inventory_item_name', elements =>
-    elements.map(element => element.textContent.trim())
-  );
+const inventoryItemNames = await extractTextContent(page, '.inventory_item_name', 'element => element.textContent.trim()'); 
 
-const sortedInventoryItemNames = inventoryItemNames.slice().sort((a, b) => {
-    if (a < b) return -1;
-    if (a > b) return 1;
-    return 0;
-});
+const sortedInventoryItemNames = sortInventoryItemNames(inventoryItemNames)
   
-const isSortedAsc = JSON.stringify(sortedInventoryItemNames) === JSON.stringify(inventoryItemNames.slice().sort());
-expect(isSortedAsc).toEqual(true)
-expect(isSortedAsc).toBeTruthy()
-  
+expect(sortedInventoryItemNames).toEqual(inventoryItemNames.sort())
 });
 
 test('ID=3; Verify sorting price from low to high ', async ({ page }) => {
   await page.locator('select.product_sort_container').selectOption('Price (low to high)');
 
-const inventoryItemPrices = await page.$$eval('.inventory_item_price', elements =>
-  elements.map(element => parseFloat(element.textContent.trim().replace('$', '')))
-);
+const inventoryItemPrices = await extractTextContent(page, '.inventory_item_price', 'element => parseFloat(element.textContent.trim().replace("$", ""))');
+
 
 const sortedInventoryItemPrices = inventoryItemPrices.slice().sort(((a, b) => a - b))
 
-const isSortedFromLowToHigh = sortedInventoryItemPrices.every((value, index) => value === inventoryItemPrices[index]);
-expect(isSortedFromLowToHigh).toEqual(true)
-expect(isSortedFromLowToHigh).toBeTruthy()
+expect(sortedInventoryItemPrices).toEqual(inventoryItemPrices.sort(((a, b) => a - b)))
 });
 
 test('ID=4; Verify sorting price from high to low ', async ({ page }) => {
   await page.locator('select.product_sort_container').selectOption('Price (high to low)');
 
-const inventoryItemPrices = await page.$$eval('.inventory_item_price', elements =>
-  elements.map(element => parseFloat(element.textContent.trim().replace('$', '')))
-);
+const inventoryItemPrices = await extractTextContent(page, '.inventory_item_price', 'element => parseFloat(element.textContent.trim().replace("$", ""))');
 
 const sortedInventoryItemPrices = inventoryItemPrices.slice().sort(((a, b) => b - a))
   
-const isSortedFromHighToLow = sortedInventoryItemPrices.every((value, index) => value === inventoryItemPrices[index]);
-expect(isSortedFromHighToLow).toEqual(true)
-expect(isSortedFromHighToLow).toBeTruthy()
-  
+expect(sortedInventoryItemPrices).toEqual(inventoryItemPrices.sort(((a, b) => b - a)))  
 });
+
 })
